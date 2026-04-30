@@ -6,3 +6,5 @@ server/data/*.sqlite
 npm-debug.log*
 server-*.log
 veloce-*.png
+
+.vercel
