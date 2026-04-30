@@ -52,6 +52,26 @@ For instant local development without MongoDB, leave `MONGO_URI` unset. Node 24+
 - `POST /api/auth/login`
 - `GET /api/auth/me`
 
+## Deploying From GitHub To Vercel
+
+This repo includes `vercel.json` and `api/index.js`, so Vercel can deploy the Vite frontend and Express API from GitHub.
+
+Use these settings when importing `YashNirgulkar/Velocity_Cars` into Vercel:
+
+- Framework preset: `Vite`
+- Build command: `npm run build`
+- Output directory: `client/dist`
+- Install command: `npm install`
+
+Recommended production environment variables:
+
+```env
+JWT_SECRET=use-a-long-random-production-secret
+MONGO_URI=mongodb+srv://...
+```
+
+If `MONGO_URI` is missing, the serverless API uses a temporary SQLite fallback and auto-seeds demo cars/admin. That is fine for a demo, but orders/contact submissions are not durable across serverless cold starts without MongoDB.
+
 ## Notes
 
 The 3D viewer uses a stylized Three.js placeholder car model, so the site remains self-contained while still delivering the requested rotating automotive scene. Remote car imagery is loaded from Unsplash URLs seeded by `server/seed.js`.

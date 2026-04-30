@@ -9,11 +9,13 @@ const Car = require("../models/Car");
 const Order = require("../models/Order");
 const Contact = require("../models/Contact");
 const User = require("../models/User");
+const { cars: seedCars, admin: seedAdmin } = require("../seedData");
 
-const dataDir = path.join(__dirname, "..", "data");
+const dataDir = process.env.VERCEL ? path.join("/tmp", "veloce-data") : path.join(__dirname, "..", "data");
 const sqliteFile = path.join(dataDir, "veloce.sqlite");
 let mode = "memory";
 let sqlite = null;
+let connected = false;
 
 function parseJson(value, fallback) {
   if (!value) return fallback;
@@ -113,6 +115,7 @@ function normalizeOrder(row) {
 }
 
 async function connectDatabase() {
+  if (connected) return;
   const mongoUri = process.env.MONGO_URI;
   if (mongoUri) {
     try {
@@ -120,6 +123,7 @@ async function connectDatabase() {
         serverSelectionTimeoutMS: 3500
       });
       mode = "mongo";
+      connected = true;
       return;
     } catch (error) {
       console.warn(`MongoDB unavailable, using SQLite fallback: ${error.message}`);
@@ -127,6 +131,8 @@ async function connectDatabase() {
   }
   ensureSqlite();
   mode = "sqlite";
+  await seedSqliteIfEmpty();
+  connected = true;
 }
 
 function getDatabaseMode() {
@@ -269,6 +275,19 @@ const repositories = {
     }
   }
 };
+
+async function seedSqliteIfEmpty() {
+  const carCount = sqlite.prepare("SELECT COUNT(*) AS count FROM cars").get().count;
+  const userCount = sqlite.prepare("SELECT COUNT(*) AS count FROM users").get().count;
+  if (carCount === 0) {
+    for (const car of seedCars) {
+      await repositories.cars.create(car);
+    }
+  }
+  if (userCount === 0) {
+    await repositories.users.create(seedAdmin);
+  }
+}
 
 module.exports = {
   connectDatabase,
